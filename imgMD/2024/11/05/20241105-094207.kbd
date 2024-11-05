@@ -1,0 +1,201 @@
+;; -------------------------------------------------------------------------------------------------
+;; 必须的配置条目 defcfg
+;; -------------------------------------------------------------------------------------------------
+(defcfg
+    process-unmapped-keys yes
+    sequence-timeout 2000
+    windows-altgr add-lctl-release
+)
+
+;; -------------------------------------------------------------------------------------------------
+;; 配置文件必须只有一个 defsrc 条目
+;; 1. defsrc 条目由defsrc 和键名组成, 键名之间用空格分隔
+;; 2. defsrc 条目被视为一个长序列, 空格 (空格, 制表符, 换行符) 的数量是不相关的, 您可以使用空格, 制表符或换行符来分
+;;    隔键名和键值
+;; -------------------------------------------------------------------------------------------------
+(defsrc
+    grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc 
+    tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+    caps a    s    d    f    g    h    j    k    l    ;    '    ret
+    lsft z    x    c    v    b    n    m    ,    .    /    rsft
+    lctl lmet lalt           spc            ralt rmet rctl
+)
+
+;; -------------------------------------------------------------------------------------------------
+;; defalias
+;; defalias 引入别名，按顺序读取成对项目，第一个项目是别名，第二个项目是可替换的操作
+;; -------------------------------------------------------------------------------------------------
+(defalias
+    ;; Unicode 区
+    ;; 在中文情况下，激活 space 层时，输入英文符号（ens -> English Symbol）
+    ens1 (unicode !)
+    ens2 (unicode @)
+    ens3 (unicode #)
+    ens4 (unicode $)
+    ens5 (unicode %)
+    ens6 (unicode ^)
+    ens7 (unicode &)
+    ens8 (unicode *)
+    ;; 本不支持英文引号和英文括号，我提了个 issues （https://github.com/jtroo/kanata/issues/163），开发者已支持了（https://github.com/jtroo/kanata/pull/1021）
+    ens9(unicode r#"("#)
+    ens10(unicode r#")"#)
+    ens11 (unicode [)
+    ens12 (unicode ])
+    ens13 (unicode \)
+    ens14 (unicode ;)
+    ens15 (unicode ')
+    ens16 (unicode ,)
+    ens17 (unicode .)
+    ens18 (unicode _)
+    ens19 (unicode +)
+    ens20 (unicode `)
+    ens21 (unicode /)
+)
+
+(defalias
+    ;; Shift Unicode 区
+    ;; 在中文情况下，激活 space 层时，输入Shift 下的英文符号（sens -> Shift English Symbol）
+    s_ens1 (unicode _)
+    s_ens2 (unicode +)
+    s_ens3 (unicode {)
+    s_ens4 (unicode })
+    s_ens5 (unicode |)
+    s_ens6 (unicode :)
+    ;; 支持英文引号，
+    s_ens7 (unicode r#"""#)
+    s_ens8 (unicode <)
+    s_ens9 (unicode >)
+    s_ens10 (unicode ?)
+)
+
+(defalias
+    ;; 输入法 Unicode 区
+    ;; 定义中文下的分号、引号、逗号、句号、问号及其 shift 形态
+    ;; 本义是用来双击录入，但 kanata 中双击会带来延迟，故放弃
+    input1(unicode ：)
+    input2(unicode ；)
+    input3(unicode ，)
+    input4(unicode 《)
+    input5(unicode 。)
+    input6(unicode 》)
+    input7(unicode ？)
+    input8(unicode 、)
+)
+
+(defalias hyper_key
+    ;; 单击 tab 保持 tab 功能，按下 tab 不释放激活 hyper_key_layer
+    ;; 该层将 tab 映射成 hyper_key （ shif + ctrl + alt + win ）
+    ;; 该层只包括主字母区域的映射
+    ;; 注：因为 alt + tab 在 win 中是相当特殊的一个组合键，映射 hyper_key 后，会略微影响 alt + tab 键的反应速度，在快速切换中，有一点延迟，几乎不可察。
+    (tap-hold-press 200 200 tab (layer-while-held hyper_key_layer))
+)
+
+(defalias super_key
+    ;; 单击 caps 映射成 esc，按下 caps 不释放激活 super_key_layer
+    ;; 该层将 capslock 映射成 super_key （ shift + ctrl + alt ）(原 capslock 功能由 space + cpaslock 完成)
+    ;; 该层只包括主字母区域的映射
+    ;; 注：
+    ;;     1. tab-hold 后的第二个参数表示按下后必须保持 xxx 毫秒以上，caps 才会激活 super_key_layer
+    ;;     2. tap-hold-press ：如果按下不同的键，即使现在 caps 还没有激活 super_key_layer ，此时也会激活
+    ;;     3. tap-hold-release ：比如说 caps 要按下保持 1s 中才会激活 super_key_layer ，但是如果单击了其他键如 c ，只有等待 c 释放后，才会激活
+    (tap-hold-press 150 150 esc (layer-while-held super_key_layer))
+)
+
+(defalias
+    ;; 定义 chard 行为：
+    ;; 当按下 left_shift/right_shift 时，指向 sspace 别名，单按则分别切到英/中输入法
+    ;; 当按下 space 时，指向 sspace 别名，单按则不影响 space 功能
+    chord_left_shift (chord sspace lsft)
+    chord_right_shift (chord sspace rsft)
+    chord_space (chord sspace spc)
+)
+
+(defchords sspace 65535
+    ;; 进一步定义 chard 指向的 sspace 行为：
+    ;; 1. 单按 left_shift/right_shift 转中英文切换功能
+    ;; 2. space_layer 两种触发逻辑（选其一）：
+    ;;     1. 长按 space 进入 space_layer 层，优点在于触发迅速，但会影响选词和 PS 等软件中的拖拽功能；
+    ;;     2. 双击 space 进入 space_layer ，优点在于保持 space 功能，但触发没那么方便，而且输入多个空格不好用，影响输入法选词这点比长按还严重
+    ;; 3. left_shift/right_shift + space 都会进入 sspace_layer 层（参考下面 sspace_layer 的具体定义）
+    ;; 注：
+    ;; 中英文输入法一键切换功能实现原理如下：
+    ;;     1. 在系统保留英文键盘
+    ;;     2. 在系统中为英文键盘和中文输入法分别设置一个快捷键，直接切到此输入法，如 Ctrl+Shift+1 和 Ctrl+Shift+9 分别切到英中
+    ;;     3. 映射左右 Shift 为此快捷键，达到一键切的目的
+    ;; 注意：
+    ;; 因为 defchards 方法的限制，无法实现“先按下 space，按住一阵子后，再按 shift ，还能激活 sspace_layer”这种操作。
+    ;; 实际上，我用了一种曲线救国的方式，即加大两个键之间允许的延时，即 delay 值。
+    ;; delay 值，指的是按下 space 后，超过此时间，再按下 shift 就无法触发 sspace_layer 。
+    ;; 这个 delay 值最大容许 65535 毫秒，也就是大概1分钟，应该是够用了，按住一个键超过1分钟的情境还是比较少的。
+    (lsft) (multi lsft (tap-hold-press 150 150 C-S-1 lsft))
+    (rsft) (multi rsft (tap-hold-press 150 150 C-S-9 rsft))
+    (spc) (tap-hold-press 200 200 spc (layer-while-held space_layer)) ;; 长按逻辑
+;;    (spc) (tap-dance 200 (spc (layer-while-held space_layer))) ;; 双击逻辑
+    (lsft spc) (layer-while-held sspace_layer)
+    (rsft spc) (layer-while-held sspace_layer)
+)
+
+;; -------------------------------------------------------------------------------------------------
+;; 配置文件必须至少有一个 deflayer 条目, 这定义了当 kanata 运行时, desrc 中映射的每个物理键的行为
+;; deflayer 中的键 / 动作的顺序对应于 defsrc 中定义的相同序列位置中的物理键
+;; 下列配置文件定义了如下动作：
+;;     1. capslock 短按 esc ，长按 super_key_layer ，即 super_key
+;;     2. space 短按 space ，长按激活 space_layer 层
+;;     3. 左右 shift 短按切输入法
+;; -------------------------------------------------------------------------------------------------
+(deflayer start
+    ;; 默认层：
+    ;;     1. 定义了 @cap @esft @space @zshft @ctrl 的长短按行为
+    ;;     2. 分号、引号、slash 默认加修饰键 shift ，从而输入中文最更常用的几个键，按 shift 时，则不加 shift （也就是，这几个按键加 shift 和不加 shift 的行为反了过来，原因自然是中文下，加修饰键的符号更常用，所以换成不加也能打出，甚至英文下其 shift 形态也更常用）
+    grv  1    2    3    4    5    6    7    8    9    0    min  eql  bspc 
+    @hyper_key q    w    e    r    t    y    u    i    o    p    [    ]    \ 
+    @super_key a    s    d    f    g    h    j    k    l    ;    '    ret 
+    @chord_left_shift z    x    c    v    b    n    m    ,    .    /    @chord_right_shift 
+    lctl lmet lalt           @chord_space   ralt rmet rctl
+)
+
+(deflayer hyper_key_layer
+    ;; 激活 hyper_key_layer 层后，所有字母区域都会加上 ctrl + alt + shift + win，即 hyper_key
+    C-A-S-M-grv C-A-S-M-1 C-A-S-M-2 C-A-S-M-3 C-A-S-M-4 C-A-S-M-5 C-A-S-M-6 C-A-S-M-7 C-A-S-M-8 C-A-S-M-9 C-A-S-M-0 min  eql  bspc 
+    XX   C-A-S-M-q C-A-S-M-w C-A-S-M-e C-A-S-M-r C-A-S-M-t C-A-S-M-y C-A-S-M-u C-A-S-M-i C-A-S-M-o C-A-S-M-p [    ]    \ 
+    XX   C-A-S-M-a C-A-S-M-s C-A-S-M-d C-A-S-M-f C-A-S-M-g C-A-S-M-h C-A-S-M-j C-A-S-M-k C-A-S-M-l ;    '    ret 
+    XX   C-A-S-M-z C-A-S-M-x C-A-S-M-c C-A-S-M-v C-A-S-M-b C-A-S-M-n C-A-S-M-m ,    .    /    XX  
+    lctl lmet lalt           XX             ralt rmet rctl
+)
+
+(deflayer super_key_layer
+    ;; 激活 super_key_layer 层后，所有字母区域都会加上 ctrl + alt + shift ，即 super_key
+    C-A-S-grv C-A-S-1 C-A-S-2 C-A-S-3 C-A-S-4 C-A-S-5 C-A-S-6 C-A-S-7 C-A-S-8 C-A-S-9 C-A-S-0 min  eql  bspc 
+    XX   C-A-S-q C-A-S-w C-A-S-e C-A-S-r C-A-S-t C-A-S-y C-A-S-u C-A-S-i C-A-S-o C-A-S-p [    ]    \ 
+    XX   C-A-S-a C-A-S-s C-A-S-d C-A-S-f C-A-S-g C-A-S-h C-A-S-j C-A-S-k C-A-S-l ;    '    ret 
+    lsft C-A-S-z C-A-S-x C-A-S-c C-A-S-v C-A-S-b C-A-S-n C-A-S-m ,    .    /    rsft 
+    lctl lmet lalt           XX             ralt rmet rctl
+)
+
+(deflayer space_layer
+    ;; 激活 space_layer 层后：
+    ;;     1. 数字1-9为对应数字在英文下按 shift 输入的符号，如1对应英文感叹号，以方便 Markdown 输入
+    ;;     2. 更多符号，如英文冒号，转 symbol 层
+    ;;     3. ijkl 为文向键，以文便在文本间跳转，也可加上 shift 以选中文本
+    ;;     4. uo 为 home 和 end ，可快速跳转到段首、段尾，这比 page up 和 page down 更实用，如需要这两个，改成 pgdn 和 pgup即可
+    ;;     5. nm 分别是 backspace 和 delete
+    ;;     6. asfhzxcvyp，分别对应其与 ctrl 的组合键，可完成全选、保存、搜索、替换、重做、剪切、复制、粘贴、撤回、打印
+    ;;     7. qw 分别对应 alt+f4 和 ctrl+w，前者是关掉程序，后者是关掉窗口
+    @ens20 @ens1 @ens2 @ens3 @ens4 @ens5 @ens6 @ens7 @ens8 @ens9   @ens10   @ens18 @ens19 C-bspc 
+    tab  A-f4 C-w  C-e  C-r  C-t  C-y  home up   end  C-p  @ens11 @ens12 @ens13 
+    caps C-a  C-s  del  C-f  C-g  C-h  left down rght @ens14 @ens15 ret 
+    @chord_left_shift C-z  C-x  C-c  C-v  C-b  C-n  C-m  @ens16 @ens17 @ens21 @chord_right_shift 
+    lctl lmet lalt           XX             ralt rmet rctl
+)
+
+(deflayer sspace_layer
+    ;; 激活 sspace_layer 层后：
+    ;; 所有按键都会变成其在 space_layer 下的 shift 状态
+    ;; 比如 shift + space + i/j/k/l 就会变成 shift + up/left/down/right ，即选择键
+    ;; 而相对的符号就变成其英文下的 shift 输入（引号不可用，因为 unicode 方法不支持英文引号和括号）
+    grv  1    2    3    4    5    6    7    8    9    0    min  eql  bspc 
+    tab  S-A-f4 C-S-w C-S-e C-S-r C-S-t C-S-y S-home S-up S-end C-S-p @s_ens3 @s_ens4 @s_ens5 
+    caps C-S-a C-S-s S-del C-S-f C-S-g C-S-h S-left S-down S-rght @s_ens6 @s_ens7    ret 
+    lsft C-S-z C-S-x C-S-c C-S-v C-S-b C-S-n C-S-m @s_ens8 @s_ens9 @s_ens10 rsft 
+    lctl lmet lalt           @chord_space   ralt rmet rctl
+)
